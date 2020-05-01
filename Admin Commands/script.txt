@@ -1,0 +1,440 @@
+-- Current Admins
+local admins = {"blazesword2008","SmartyPantsME2016","Player1"}
+
+-- Ban Store
+
+local DataStoreService = game:GetService("DataStoreService")
+local banStore = DataStoreService:GetDataStore("UserTempBans")
+local banStore2 = DataStoreService:GetDataStore("UserBans")
+
+-- Settings
+
+local everyoneAdmin = false -- (set to true if you want everyone to have it)
+
+game.Players.PlayerAdded:Connect(function(player)
+	
+	-- check if tempBanned
+	
+	local bannedTime = banStore:GetAsync("UserBan"..player.UserId)
+	
+    	if bannedTime and os.time() < bannedTime[1]  then
+	
+        	player:Kick("TempBan\nTime: "..bannedTime[2].." minutes") 
+
+    	elseif bannedTime and os.time() > bannedTime[1] then
+	
+        banStore:RemoveAsync("UserBan"..player.UserId)
+
+    end
+
+	-- check if banned
+	
+	local ifBanned = false
+	
+	local banData = banStore2:GetAsync(player.UserId)
+	
+	if banData ~= nil then
+		
+		ifBanned = banData
+		
+	else
+		
+		ifBanned = false	
+		
+	end
+	
+	if ifBanned == true then
+		
+		player:Kick("You have been banned from the game.")
+		
+	end
+	
+	player.Chatted:Connect(function(message)
+		
+		if everyoneAdmin == false then
+			
+			for i,v in pairs(admins) do
+		
+			if player.Name == v then
+			
+				-- Commands
+				
+				
+				-- kill cmds
+				
+				if string.sub(message:lower(), 1, 8) == "/kill me" then
+					
+					player.Character.Humanoid.Health = 0
+					
+				elseif string.sub(message:lower(), 1, 13) == "/kill others" then
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						if v.Name ~= player.Name then
+							
+							v.Character.Humanoid.Health = 0
+							
+						end
+						
+					end
+					
+				elseif string.sub(message:lower(), 1, 10) == "/kill all" then
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						v.Character.Humanoid.Health = 0
+						
+					end
+					
+				elseif string.sub(message:lower(), 1, 5) == "/kill" then
+					
+					local fiPlayer = string.sub(message:lower(), 7)
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						if string.sub(v.Name:lower(), 1, #fiPlayer) == fiPlayer then
+							
+							v.Character.Humanoid.Health = 0
+							
+						end
+						
+					end
+					
+				end	
+				
+				-- tp cmds
+					
+				    local cmd, args = nil, {}
+				
+    				for argmatch in message:gmatch("[%w%p]+") do
+	
+        				if cmd == nil then 
+	
+							cmd = argmatch:lower() 
+							
+						else
+	 
+							table.insert(args, argmatch:lower()) 
+							
+						end
+   
+ 					end
+
+
+    			if cmd == "/tp" then
+	
+        			local Player1 = {}
+
+        			if args[1] == "me" then
+	
+            			table.insert(Player1, player)
+
+        		elseif args[1] == "others" then
+	
+            		for _, v in pairs(game.Players:GetPlayers()) do
+	
+                		if v.Name ~= player.Name then
+	
+                    		table.insert(Player1, v)
+
+                		end
+
+            		end
+
+        		else
+	
+            		for _, v in pairs(game.Players:GetPlayers()) do
+	
+                		if string.sub(v.Name:lower(), 1, #args[1]) == args[1] then
+	
+                    		table.insert(Player1, v)
+
+                		end
+
+            		end
+
+        		end
+
+
+        		local Player2;
+
+        		if args[2] == "me" then
+	
+            		Player2 = player
+
+        		else
+	
+            		for _, v in pairs(game.Players:GetPlayers()) do
+	
+                		if string.sub(v.Name:lower(), 1, #args[2]) == args[2] then
+	
+                    		Player2 = v
+
+                		end
+
+            		end
+        
+				end
+
+        		if #Player1 == 0 or Player2 == nil then
+	
+            		return "[Admin] Error: Argument 1 (or 2) is invalid."
+
+        		end
+
+        		for _, v  in pairs(Player1) do
+	
+            		v.Character.Humanoid.Jump = true
+            		v.Character:SetPrimaryPartCFrame(Player2.Character.HumanoidRootPart.CFrame)
+        
+				end
+
+    			end
+
+				-- explode cmds
+				
+				if string.sub(message:lower(), 1, 11) == "/explode me" then
+					
+					local explosion = Instance.new("Explosion")
+					explosion.Parent = player.Character.HumanoidRootPart
+					explosion.Position = player.Character.HumanoidRootPart.Position
+					explosion.BlastPressure = 1
+					
+					player.Character.Humanoid.Health = 0
+					
+				elseif string.sub(message:lower(), 1, 15) == "/explode others" then
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						if v.Name ~= player.Name then
+							
+							local explosion = Instance.new("Explosion")
+							explosion.Parent = v.Character.HumanoidRootPart
+							explosion.Position = v.Character.HumanoidRootPart.Position
+							explosion.BlastPressure = 1
+						
+							v.Character.Humanoid.Health = 0
+							
+						end
+						
+					end
+					
+				elseif string.sub(message:lower(), 1, 12) == "/explode all" then
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						local explosion = Instance.new("Explosion")
+						explosion.Parent = v.Character.HumanoidRootPart
+						explosion.Position = v.Character.HumanoidRootPart.Position
+						explosion.BlastPressure = 1
+						
+						v.Character.Humanoid.Health = 0
+						
+					end
+					
+				elseif string.sub(message:lower(), 1, 8) == "/explode" then
+					
+					local fiPlayer = string.sub(message:lower(), 10)
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						if string.sub(v.Name:lower(), 1, #fiPlayer) == fiPlayer then
+							
+							local explosion = Instance.new("Explosion")
+							explosion.Parent = v.Character.HumanoidRootPart
+							explosion.Position = v.Character.HumanoidRootPart.Position
+							explosion.BlastPressure = 1
+						
+							v.Character.Humanoid.Health = 0
+							
+						end
+						
+					end		
+					
+				end
+				
+				-- kick cmds
+				
+				if string.sub(message:lower(), 1, 8) == "/kick me" then
+					
+					player:Kick("You were kicked from the game by: "..player.Name)
+					
+				elseif string.sub(message:lower(), 1, 9) == "/kick all" then	
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						v:Kick("You were kicked from the game by: "..player.Name)
+						
+					end
+					
+				elseif string.sub(message:lower(), 1, 12) == "/kick others" then
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						if v.Name ~= player.Name then
+							
+							v:Kick("You were kicked from the game by: "..player.Name)
+							
+						end
+						
+					end
+				
+				elseif string.sub(message:lower(), 1, 5) == "/kick" then
+						
+					local fiPlayer = string.sub(message:lower(), 7)
+					
+					for _, v in pairs(game.Players:GetPlayers()) do
+						
+						if string.sub(v.Name:lower(), 1, #fiPlayer) == fiPlayer then
+							
+							v:Kick("You were kicked from the game by: "..player.Name)
+							
+						end
+						
+					end	
+						
+				end
+				
+				-- tempban cmds
+				
+				if cmd == "/tempban" then
+					
+        			local banPlayers = {}
+
+        			if args[1] == "me" then
+	
+            			table.insert(banPlayers, player)
+
+        			elseif args[1] == "others" then
+	
+            			for _, v in pairs(game.Players:GetPlayers()) do
+	
+                			if v.Name ~= player.Name then
+	
+                    			table.insert(banPlayers, v) 
+             
+                			end
+                
+            			end
+
+        			elseif args[1] == "all" then
+	
+            			for _, v in pairs(game.Players:GetPlayers()) do
+	
+                			table.insert(banPlayers, v)
+
+            			end
+
+        			else
+	
+            			for _, v in pairs(game.Players:GetPlayers()) do
+	
+                			if string.sub(v.Name:lower(), 1, #args[1]) == args[1] then
+	
+                    			table.insert(banPlayers, v)
+
+                			end
+
+            			end
+
+        			end
+
+        			if #banPlayers == 0 then 
+	
+						return "[Admin]: No banned players found." 
+						
+					end
+
+        			local Time = os.time() + (60 * args[2]) -- 60 * 1 = 1 Min added to the ban time
+
+        			for _, v in pairs(banPlayers) do
+	
+            			banStore:SetAsync("UserBan"..v.UserId, {Time, args[2]})
+            			v:Kick("TempBan\nTime: "..args[2].." minutes")
+
+        			end
+				end
+				
+				-- ban cmds
+				
+				if cmd == "/ban" then
+					
+					if args[1] == "me" then
+						
+						ifBanned = true
+						
+						banStore2:SetAsync(player.UserId, ifBanned)
+						
+						player:Kick("You have been banned from the game.")
+						
+					elseif args[1] == "others" then
+						
+						for _, v in pairs(game.Players:GetPlayers()) do
+							
+							if v.Name ~= player.Name then
+								
+								ifBanned = true
+								
+								banStore2:SetAsync(v.UserId, ifBanned)
+								
+								v:Kick("You have been banned from the game.")
+								
+							end
+							
+						end	
+						
+					elseif args[1] == "all" then
+						
+						for _, v in pairs(game.Players:GetPlayers()) do
+								
+							ifBanned = true
+								
+							banStore2:SetAsync(v.UserId, ifBanned)
+								
+							v:Kick("You have been banned from the game.")
+							
+						end	
+						
+					else 
+						
+						for _, v in pairs(game.Players:GetPlayers()) do
+	
+                			if string.sub(v.Name:lower(), 1, #args[1]) == args[1] then
+	
+                    			ifBanned = true
+								
+								banStore2:SetAsync(v.UserId, ifBanned)
+								
+								v:Kick("You have been banned from the game.")
+
+                			end
+
+            			end
+						
+					end
+										
+				end
+				
+				-- unban cmd
+					
+				if cmd == "/unban" then
+						
+					local playerID = args[1]
+										
+					banStore2:RemoveAsync(playerID)
+					banStore:RemoveAsync("UserBan"..playerID)
+						
+				end
+				
+			end	
+		end
+
+			else
+				
+				-- copy all commands here after
+		
+			end
+		
+	end)
+	
+end)
